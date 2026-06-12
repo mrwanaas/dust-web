@@ -2,7 +2,7 @@
 import { startGame, onDeath, onRespawn } from './main.js';
 
 // ── Update this with your Render.com server URL ──
-const SERVER_URL = 'https://your-server.onrender.com';
+const SERVER_URL = 'https://dust-web.onrender.com';
 
 export class NetworkManager {
   constructor(state) {
