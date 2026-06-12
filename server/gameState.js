@@ -1,7 +1,5 @@
 // gameState.js — Authoritative Server-Side Game State
-const { Vector3 } = require('three-math-ts') || createVec3Shim();
 
-// Minimal Vec3 shim if three-math-ts not available
 function createVec3Shim() {
   class Vector3 {
     constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z;}
@@ -10,6 +8,7 @@ function createVec3Shim() {
   }
   return {Vector3};
 }
+const { Vector3 } = createVec3Shim();
 
 const ROUND_TIME    = 105; // seconds
 const ROUNDS_TO_WIN = 16;
