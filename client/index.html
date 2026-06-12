@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DUST_WEB — Browser FPS</title>
+  <link rel="stylesheet" href="css/hud.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.152.2/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- LOBBY SCREEN -->
+  <div id="lobby" class="lobby-screen">
+    <div class="lobby-bg"></div>
+    <div class="lobby-container">
+      <div class="game-logo">
+        <span class="logo-dust">DUST</span><span class="logo-web">_WEB</span>
+        <div class="logo-sub">Browser FPS — Powered by Three.js</div>
+      </div>
+
+      <div id="lobby-main" class="lobby-panel">
+        <div class="username-row">
+          <label>CALLSIGN</label>
+          <input type="text" id="username-input" maxlength="16" placeholder="Enter name..." autocomplete="off">
+        </div>
+        <div class="lobby-buttons">
+          <button class="btn-primary" onclick="window.lobbyCreateRoom()">CREATE ROOM</button>
+          <button class="btn-secondary" onclick="window.lobbyShowJoin()">JOIN ROOM</button>
+        </div>
+      </div>
+
+      <div id="lobby-join" class="lobby-panel hidden">
+        <div class="username-row">
+          <label>ROOM CODE</label>
+          <input type="text" id="room-code-input" maxlength="6" placeholder="XXXXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:4px;">
+        </div>
+        <div class="lobby-buttons">
+          <button class="btn-primary" onclick="window.lobbyJoinRoom()">JOIN</button>
+          <button class="btn-ghost" onclick="window.lobbyBack()">BACK</button>
+        </div>
+      </div>
+
+      <div id="lobby-waiting" class="lobby-panel hidden">
+        <div class="room-code-display">
+          ROOM: <span id="room-code-display">------</span>
+          <button class="btn-copy" onclick="window.lobbyCopyCode()">COPY</button>
+        </div>
+        <div class="teams-container">
+          <div class="team-col">
+            <div class="team-header ct">COUNTER-TERRORISTS</div>
+            <div id="team-ct" class="team-list"></div>
+          </div>
+          <div class="team-col">
+            <div class="team-header t">TERRORISTS</div>
+            <div id="team-t" class="team-list"></div>
+          </div>
+        </div>
+        <div class="lobby-actions">
+          <button class="btn-team" onclick="window.lobbySwapTeam()">SWAP TEAM</button>
+          <button class="btn-ready" id="ready-btn" onclick="window.lobbyToggleReady()">READY</button>
+          <button id="start-btn" class="btn-start hidden" onclick="window.lobbyStartGame()">START GAME</button>
+        </div>
+        <div class="lobby-status" id="lobby-status">Waiting for players...</div>
+      </div>
+
+      <div id="lobby-connecting" class="lobby-panel hidden">
+        <div class="connecting-spinner"></div>
+        <div class="connecting-text">CONNECTING TO SERVER...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME CANVAS -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD OVERLAY -->
+  <div id="hud" class="hud hidden">
+
+    <!-- CROSSHAIR -->
+    <div id="crosshair" class="crosshair">
+      <div class="ch-top"></div>
+      <div class="ch-bottom"></div>
+      <div class="ch-left"></div>
+      <div class="ch-right"></div>
+      <div class="ch-dot"></div>
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="hud-top">
+      <div class="team-score">
+        <span class="score-ct" id="score-ct">CT</span>
+        <span class="score-num ct" id="score-ct-num">0</span>
+        <span class="score-divider">:</span>
+        <span class="score-num t" id="score-t-num">0</span>
+        <span class="score-t" id="score-t">T</span>
+      </div>
+      <div class="round-timer" id="round-timer">1:45</div>
+      <div class="round-num" id="round-num">ROUND 1</div>
+    </div>
+
+    <!-- KILL FEED (top-right) -->
+    <div id="killfeed" class="killfeed"></div>
+
+    <!-- BOTTOM LEFT — health + armor -->
+    <div class="hud-bottom-left">
+      <div class="hp-row">
+        <div class="hp-icon">❤</div>
+        <div class="hp-bar-wrap">
+          <div id="hp-bar" class="hp-bar" style="width:100%"></div>
+        </div>
+        <div id="hp-num" class="hp-num">100</div>
+      </div>
+      <div class="armor-row">
+        <div class="armor-icon">🛡</div>
+        <div class="armor-bar-wrap">
+          <div id="armor-bar" class="armor-bar" style="width:100%"></div>
+        </div>
+        <div id="armor-num" class="armor-num">100</div>
+      </div>
+    </div>
+
+    <!-- BOTTOM RIGHT — ammo + weapon + minimap -->
+    <div class="hud-bottom-right">
+      <div class="minimap-container">
+        <canvas id="minimap" width="150" height="150"></canvas>
+        <div class="minimap-label">MAP</div>
+      </div>
+      <div class="weapon-info">
+        <div class="weapon-icon" id="weapon-icon">AK</div>
+        <div class="ammo-display">
+          <span id="ammo-mag" class="ammo-mag">30</span>
+          <span class="ammo-sep">/</span>
+          <span id="ammo-reserve" class="ammo-reserve">90</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIT INDICATOR -->
+    <div id="hit-indicator" class="hit-indicator hidden"></div>
+
+    <!-- DAMAGE FLASH -->
+    <div id="damage-flash" class="damage-flash hidden"></div>
+
+    <!-- DEATH SCREEN -->
+    <div id="death-screen" class="death-screen hidden">
+      <div class="death-title">YOU DIED</div>
+      <div class="respawn-timer" id="respawn-timer">Respawning in 3...</div>
+      <div class="killer-info" id="killer-info"></div>
+    </div>
+
+    <!-- ROUND END -->
+    <div id="round-end" class="round-end hidden">
+      <div class="round-end-title" id="round-end-title">ROUND OVER</div>
+      <div class="round-end-winner" id="round-end-winner"></div>
+    </div>
+
+    <!-- MATCH END -->
+    <div id="match-end" class="match-end hidden">
+      <div class="match-title" id="match-title">MATCH OVER</div>
+      <div class="match-score" id="match-score"></div>
+      <button class="btn-primary" onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <!-- SCOREBOARD (Tab key) -->
+    <div id="scoreboard" class="scoreboard hidden">
+      <div class="sb-title">SCOREBOARD</div>
+      <div class="sb-teams">
+        <div class="sb-team">
+          <div class="sb-team-header ct">COUNTER-TERRORISTS</div>
+          <div class="sb-cols">
+            <span>PLAYER</span><span>K</span><span>D</span><span>A</span>
+          </div>
+          <div id="sb-ct" class="sb-list"></div>
+        </div>
+        <div class="sb-team">
+          <div class="sb-team-header t">TERRORISTS</div>
+          <div class="sb-cols">
+            <span>PLAYER</span><span>K</span><span>D</span><span>A</span>
+          </div>
+          <div id="sb-t" class="sb-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS MENU (ESC key) -->
+    <div id="settings" class="settings hidden">
+      <div class="settings-panel">
+        <div class="settings-title">SETTINGS</div>
+        <div class="setting-row">
+          <label>SENSITIVITY</label>
+          <input type="range" id="sens-slider" min="0.0005" max="0.005" step="0.0001" value="0.002">
+          <span id="sens-val">0.002</span>
+        </div>
+        <div class="setting-row">
+          <label>FOV</label>
+          <input type="range" id="fov-slider" min="60" max="110" step="1" value="90">
+          <span id="fov-val">90°</span>
+        </div>
+        <div class="setting-row">
+          <label>VOLUME</label>
+          <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.7">
+          <span id="vol-val">70%</span>
+        </div>
+        <div class="keybinds">
+          <div class="kb-title">KEYBINDS</div>
+          <div class="kb-row"><span>Move</span><span>WASD</span></div>
+          <div class="kb-row"><span>Jump</span><span>SPACE</span></div>
+          <div class="kb-row"><span>Crouch</span><span>CTRL</span></div>
+          <div class="kb-row"><span>Walk</span><span>SHIFT</span></div>
+          <div class="kb-row"><span>Shoot</span><span>LMB</span></div>
+          <div class="kb-row"><span>Reload</span><span>R</span></div>
+          <div class="kb-row"><span>Switch Weapon</span><span>Scroll / 1-3</span></div>
+          <div class="kb-row"><span>Scoreboard</span><span>TAB</span></div>
+          <div class="kb-row"><span>Settings</span><span>ESC</span></div>
+        </div>
+        <button class="btn-primary" onclick="window.closeSettings()">RESUME</button>
+      </div>
+    </div>
+
+    <!-- POINTER LOCK PROMPT -->
+    <div id="click-prompt" class="click-prompt hidden">
+      <div class="prompt-text">CLICK TO FOCUS</div>
+      <div class="prompt-sub">Click anywhere to lock mouse</div>
+    </div>
+
+    <!-- RELOAD INDICATOR -->
+    <div id="reload-indicator" class="reload-indicator hidden">RELOADING...</div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
