@@ -23,60 +23,18 @@ export class GameMap {
   }
 
   _buildMaterials() {
-    // Procedural textures for variety
-    const makeTex = (fn, size=256) => {
-      const c=document.createElement('canvas'); c.width=c.height=size;
-      const ctx=c.getContext('2d'); fn(ctx,size);
-      const t=new THREE.CanvasTexture(c);
-      t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
-    };
-
-    // Sand/dirt texture
-    const sandTex = makeTex((ctx,s)=>{
-      ctx.fillStyle='#c8a060'; ctx.fillRect(0,0,s,s);
-      for(let i=0;i<3000;i++){
-        const g=Math.random()*40-20;
-        ctx.fillStyle=`rgba(${g>0?255:0},${g>0?200:0},0,${Math.abs(g)/80})`;
-        ctx.fillRect(Math.random()*s,Math.random()*s,Math.random()*3+1,Math.random()*3+1);
-      }
-    },512);
-    sandTex.repeat.set(4,4);
-
-    // Concrete texture
-    const concTex = makeTex((ctx,s)=>{
-      ctx.fillStyle='#b0a090'; ctx.fillRect(0,0,s,s);
-      for(let i=0;i<2000;i++){
-        const v=Math.random()*30-15;
-        ctx.fillStyle=`rgba(${128+v},${118+v},${108+v},0.4)`;
-        ctx.fillRect(Math.random()*s,Math.random()*s,Math.random()*4+1,Math.random()*2+1);
-      }
-      // Mortar lines
-      ctx.strokeStyle='rgba(80,70,60,0.3)'; ctx.lineWidth=1;
-      for(let y=0;y<s;y+=24){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(s,y);ctx.stroke(); }
-      for(let x=0;x<s;x+=48){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,s);ctx.stroke(); }
-    },512);
-    concTex.repeat.set(2,2);
-
-    // Dark concrete
-    const darkTex = makeTex((ctx,s)=>{
-      ctx.fillStyle='#6a6055'; ctx.fillRect(0,0,s,s);
-      for(let i=0;i<1500;i++){
-        const v=Math.random()*20-10;
-        ctx.fillStyle=`rgba(${80+v},${70+v},${60+v},0.5)`;
-        ctx.fillRect(Math.random()*s,Math.random()*s,Math.random()*5+1,Math.random()*3+1);
-      }
-    },256);
-    darkTex.repeat.set(3,3);
+    const tex = (color, roughness=0.85, metalness=0.02) =>
+      new THREE.MeshStandardMaterial({color, roughness, metalness});
 
     return {
-      ground:  new THREE.MeshStandardMaterial({map:sandTex, roughness:0.95, metalness:0}),
-      wall:    new THREE.MeshStandardMaterial({map:concTex, roughness:0.85, metalness:0.02}),
-      dark:    new THREE.MeshStandardMaterial({map:darkTex, roughness:0.9,  metalness:0.05}),
-      trim:    new THREE.MeshStandardMaterial({color:0x8a7a60, roughness:0.7}),
-      wood:    new THREE.MeshStandardMaterial({color:0x8B5E3C, roughness:0.9}),
-      metal:   new THREE.MeshStandardMaterial({color:0x607080, roughness:0.4, metalness:0.8}),
-      spawn_ct:new THREE.MeshBasicMaterial({color:0x2244cc, transparent:true, opacity:0.15, side:THREE.DoubleSide}),
-      spawn_t: new THREE.MeshBasicMaterial({color:0xcc4422, transparent:true, opacity:0.15, side:THREE.DoubleSide}),
+      ground:   tex(0xd4aa6a, 0.95, 0),      // warm sandy
+      wall:     tex(0xc8b48a, 0.82, 0.02),    // light concrete/stone
+      dark:     tex(0x9a8a6a, 0.88, 0.04),    // darker stone
+      trim:     tex(0xa89070, 0.75, 0.05),    // wall trim
+      wood:     tex(0x9B6E3C, 0.90, 0.02),    // crate wood
+      metal:    tex(0x708090, 0.45, 0.75),    // barrels
+      spawn_ct: new THREE.MeshBasicMaterial({color:0x2244cc,transparent:true,opacity:0.15,side:THREE.DoubleSide}),
+      spawn_t:  new THREE.MeshBasicMaterial({color:0xcc4422,transparent:true,opacity:0.15,side:THREE.DoubleSide}),
     };
   }
 
@@ -121,26 +79,22 @@ export class GameMap {
   }
 
   _buildSky() {
-    // Gradient sky dome
     const geo=new THREE.SphereGeometry(260,32,16);
     const canvas=document.createElement('canvas');
     canvas.width=4; canvas.height=512;
     const ctx=canvas.getContext('2d');
     const grad=ctx.createLinearGradient(0,0,0,512);
-    grad.addColorStop(0,   '#3a70b0');
-    grad.addColorStop(0.3, '#7aaad0');
-    grad.addColorStop(0.6, '#d0b878');
-    grad.addColorStop(0.8, '#c09050');
-    grad.addColorStop(1,   '#a07030');
+    // Classic Dust2 warm sky
+    grad.addColorStop(0,   '#6090c8');
+    grad.addColorStop(0.35,'#98b8d8');
+    grad.addColorStop(0.65,'#d8c090');
+    grad.addColorStop(0.85,'#c8a060');
+    grad.addColorStop(1,   '#c8a96e');
     ctx.fillStyle=grad; ctx.fillRect(0,0,4,512);
     const t=new THREE.CanvasTexture(canvas);
-    this.scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide})));
-
-    // Sun disc
-    const sunGeo=new THREE.CircleGeometry(8,16);
-    const sun=new THREE.Mesh(sunGeo, new THREE.MeshBasicMaterial({color:0xfff0c0}));
-    sun.position.set(80,120,-80); sun.lookAt(0,0,0);
-    this.scene.add(sun);
+    this.scene.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide})));
+    // Set scene background to match fog/horizon color
+    this.scene.background=new THREE.Color(0xc8a96e);
   }
 
   _buildArchitecture() {
@@ -335,35 +289,31 @@ export class GameMap {
   }
 
   _buildLights() {
-    // Ambient
-    this.scene.add(new THREE.AmbientLight(0xffd090,0.5));
-    // Sun
-    const sun=new THREE.DirectionalLight(0xfff0d0,2.5);
-    sun.position.set(50,100,40);
+    // Strong ambient — keeps everything visible like real Dust2
+    this.scene.add(new THREE.AmbientLight(0xffe8c0, 0.9));
+
+    // Main sun — bright, warm
+    const sun=new THREE.DirectionalLight(0xfff4d0, 2.8);
+    sun.position.set(60, 100, 50);
     sun.castShadow=true;
-    sun.shadow.mapSize.width=4096;
-    sun.shadow.mapSize.height=4096;
+    sun.shadow.mapSize.width=2048;
+    sun.shadow.mapSize.height=2048;
     sun.shadow.camera.near=1;
-    sun.shadow.camera.far=400;
-    sun.shadow.camera.left=-80;
-    sun.shadow.camera.right=80;
-    sun.shadow.camera.top=80;
-    sun.shadow.camera.bottom=-80;
-    sun.shadow.bias=-0.0005;
+    sun.shadow.camera.far=300;
+    sun.shadow.camera.left=-90;
+    sun.shadow.camera.right=90;
+    sun.shadow.camera.top=90;
+    sun.shadow.camera.bottom=-90;
+    sun.shadow.bias=-0.001;
     this.scene.add(sun);
-    // Fill
-    const fill=new THREE.DirectionalLight(0x8090b0,0.4);
-    fill.position.set(-30,40,-20);
+
+    // Cool sky fill from opposite side
+    const fill=new THREE.DirectionalLight(0xc0d8f0, 0.6);
+    fill.position.set(-40, 60, -30);
     this.scene.add(fill);
-    // Hemi
-    this.scene.add(new THREE.HemisphereLight(0x80aacc,0xc0a060,0.25));
-    // Interior point lights
-    const pts=[[-18,3,-22],[-18,3,-8],[18,3,10],[18,3,20]];
-    for(const [lx,ly,lz] of pts){
-      const p=new THREE.PointLight(0xffe0a0,0.8,18);
-      p.position.set(lx,ly,lz);
-      this.scene.add(p);
-    }
+
+    // Hemisphere — sky blue top, sandy bottom
+    this.scene.add(new THREE.HemisphereLight(0x90b8e0, 0xd4aa60, 0.5));
   }
 
   _buildSpawnZones() {
