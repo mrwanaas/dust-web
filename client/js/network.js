@@ -30,9 +30,10 @@ export class NetworkManager {
     }
 
     this.socket=io(SERVER_URL,{
-      transports:['websocket','polling'],
-      reconnectionAttempts:3,
-      timeout:10000,
+      transports:['polling','websocket'],
+      reconnectionAttempts:5,
+      timeout:15000,
+      forceNew:true,
     });
 
     this.socket.on('connect',()=>{
@@ -44,7 +45,7 @@ export class NetworkManager {
     this.socket.on('connect_error',(err)=>{
       console.warn('[Net] connection failed:',err.message);
       // Only fall to solo after all reconnection attempts exhausted
-      this._showServerError('Cannot reach game server. Starting offline mode...');
+      this._showServerError('Cannot reach server. Check Render.com dashboard — free tier sleeps after 15min (first request takes 30s to wake up). Retrying...');
       setTimeout(()=>this._startSolo(), 2000);
     });
 
