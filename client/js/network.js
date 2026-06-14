@@ -1,7 +1,7 @@
 // network.js — v2: Fixed respawn + buy system
 import { startGame, onDeath, onRespawn } from './main.js';
 
-const SERVER_URL = 'https://your-server.onrender.com';
+const SERVER_URL = 'https://dust-web.onrender.com';
 
 export class NetworkManager {
   constructor(state) {
