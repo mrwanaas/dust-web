@@ -22,17 +22,46 @@ export class NetworkManager {
   }
 
   _init(onReady) {
-    this.socket=io(SERVER_URL,{transports:['websocket'],reconnectionAttempts:5,timeout:8000});
+    // Detect placeholder URL — show clear error instead of silently starting solo
+    const isPlaceholder = SERVER_URL.includes('your-server') || SERVER_URL === '';
+    if(isPlaceholder) {
+      this._showServerError('SERVER_URL not set.<br><br>Open client/js/network.js and replace line 5 with your Render.com server URL, then push to GitHub.');
+      return;
+    }
+
+    this.socket=io(SERVER_URL,{
+      transports:['websocket','polling'],
+      reconnectionAttempts:3,
+      timeout:10000,
+    });
+
     this.socket.on('connect',()=>{
       console.log('[Net] connected',this.socket.id);
       this.state.myId=this.socket.id;
       if(onReady) onReady();
     });
+
     this.socket.on('connect_error',(err)=>{
-      console.warn('[Net] failed, solo mode',err.message);
-      this._startSolo();
+      console.warn('[Net] connection failed:',err.message);
+      // Only fall to solo after all reconnection attempts exhausted
+      this._showServerError('Cannot reach game server. Starting offline mode...');
+      setTimeout(()=>this._startSolo(), 2000);
     });
+
     this._registerEvents();
+  }
+
+  _showServerError(msg) {
+    const el = document.getElementById('lobby-connecting');
+    if (el) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <div style="color:#ff6060;font-size:0.75rem;letter-spacing:0.2em;margin-bottom:16px;">⚠ SERVER OFFLINE</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.65rem;letter-spacing:0.15em;line-height:1.8;">${msg}</div>
+          <button onclick="location.reload()" style="margin-top:20px;font-family:inherit;font-size:0.65rem;letter-spacing:0.2em;padding:10px 24px;background:#c8a050;color:#000;border:none;cursor:pointer;">RETRY</button>
+        </div>
+      `;
+    }
   }
 
   _registerEvents() {
