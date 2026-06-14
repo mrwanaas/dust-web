@@ -26,7 +26,8 @@ export class GameRenderer {
 
     // Scene
     this.scene=new THREE.Scene();
-    this.scene.fog=new THREE.Fog(0xc8a96e,60,180);
+    this.scene.fog=new THREE.Fog(0xc8a96e,50,140);
+    this.scene.background=new THREE.Color(0xc8a96e);
 
     // Camera
     this.camera=new THREE.PerspectiveCamera(this.state.fov,window.innerWidth/window.innerHeight,0.05,300);
