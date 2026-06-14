@@ -609,3 +609,170 @@ body {
 
 /* Ammo empty flash */
 .ammo-mag.empty { color: #ff3c3c; animation: blink 0.3s infinite alternate; }
+
+/* ══════════════════════════════════════════
+   BUY MENU — CS:GO Style
+   ══════════════════════════════════════════ */
+.buy-menu {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.82);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  pointer-events: all;
+}
+.buy-menu.hidden { display: none !important; }
+
+.buy-panel {
+  background: rgba(8,8,6,0.97);
+  border: 1px solid rgba(200,160,80,0.25);
+  border-top: 3px solid #c8a050;
+  width: min(860px, 95vw);
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 0 80px rgba(0,0,0,0.9), 0 0 30px rgba(200,160,80,0.08);
+}
+
+.buy-header {
+  display: flex; align-items: center; gap: 32px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(200,160,80,0.15);
+  background: rgba(200,160,80,0.04);
+}
+
+.buy-title {
+  font-size: 0.9rem; font-weight: 900;
+  letter-spacing: 0.35em; color: #c8a050;
+}
+.buy-key {
+  font-size: 0.6rem; color: rgba(200,160,80,0.4);
+  font-weight: 400; letter-spacing: 0.1em;
+}
+
+.buy-money-row {
+  font-size: 0.7rem; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.4);
+}
+#buy-money { color: #4cff4c; font-weight: 900; font-size: 1.0rem; }
+
+.buy-timer-row {
+  font-size: 0.65rem; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.3); margin-left: auto;
+}
+#buy-time-left { color: #ffcc00; font-weight: 900; }
+
+.buy-categories {
+  display: flex; gap: 2px;
+  padding: 12px 24px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.buy-cat {
+  font-family: inherit; font-size: 0.6rem;
+  letter-spacing: 0.2em; font-weight: 700;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgba(255,255,255,0.3);
+  border: none; border-bottom: 2px solid transparent;
+  cursor: pointer; transition: all 0.15s;
+}
+.buy-cat:hover { color: rgba(255,255,255,0.7); border-bottom-color: rgba(200,160,80,0.4); }
+.buy-cat.active { color: #c8a050; border-bottom-color: #c8a050; }
+
+.buy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px; padding: 18px 24px;
+  overflow-y: auto; flex: 1;
+}
+
+.buy-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: default;
+}
+.buy-card:hover { background: rgba(200,160,80,0.06); border-color: rgba(200,160,80,0.3); }
+.buy-card.cant-afford { opacity: 0.45; }
+
+.buy-card-name {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; color: #fff;
+}
+
+.buy-card-gun {
+  height: 40px; display: flex; align-items: center;
+  color: rgba(200,160,80,0.7);
+}
+.buy-card-gun svg { width: 100%; height: 36px; }
+
+.buy-card-stats {
+  display: flex; gap: 8px;
+}
+.buy-stat {
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+  padding: 2px 6px;
+}
+
+.buy-card-price {
+  font-size: 0.9rem; font-weight: 900;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.05em;
+}
+.buy-card-price.affordable { color: #4cff4c; }
+
+.buy-btn {
+  font-family: inherit; font-size: 0.62rem;
+  letter-spacing: 0.2em; font-weight: 700;
+  padding: 8px; border: none; cursor: pointer;
+  background: rgba(200,160,80,0.15);
+  color: #c8a050;
+  border: 1px solid rgba(200,160,80,0.3);
+  transition: all 0.15s;
+}
+.buy-btn:hover:not(:disabled) { background: #c8a050; color: #000; }
+.buy-btn:disabled { cursor: not-allowed; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.08); }
+
+.buy-footer {
+  padding: 14px 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; justify-content: flex-end;
+}
+.buy-close-btn {
+  font-family: inherit; font-size: 0.62rem;
+  letter-spacing: 0.2em; font-weight: 700;
+  padding: 8px 20px;
+  background: transparent; color: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer; transition: all 0.15s;
+}
+.buy-close-btn:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+
+/* ══════════════════════════════════════════
+   HIT INDICATOR — headshot variant
+   ══════════════════════════════════════════ */
+.hit-indicator.headshot-hit {
+  border-color: rgba(255,150,0,0.8) !important;
+  box-shadow: inset 0 0 60px rgba(255,120,0,0.4) !important;
+}
+
+/* Money display in HUD */
+#money-display {
+  font-size: 1.0rem; font-weight: 900;
+  color: #4cff4c;
+  letter-spacing: 0.05em;
+}
+
+/* Money row */
+.money-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 4px;
+}
+.money-icon { font-size: 0.85rem; }
+.money-hint {
+  font-size: 0.55rem; letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.2); margin-left: 6px;
+}
